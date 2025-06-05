@@ -36,3 +36,6 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Running terraform init
         run: terraform init
+        
+      - name: Running terraform plan
+        run: terraform plan
