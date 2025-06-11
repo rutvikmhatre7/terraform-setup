@@ -128,7 +128,7 @@ resource "azurerm_linux_virtual_machine" "my_terraform_vm" {
   network_interface_ids = [azurerm_network_interface.my_terraform_nic.id]
   size                  = "Standard_B2ls_v2"
 
-  custom_data = base64encode(data.template_file.cloud-init-bootstrap.rendered)
+
 
   os_disk {
     name                 = "myOsDisk"
@@ -156,6 +156,3 @@ resource "azurerm_linux_virtual_machine" "my_terraform_vm" {
   }
 }
 
-data "template_file" "cloud-init-bootstrap" {
-    template = templatefile("./cloud-init.yaml",{vmname = var.vmname})
-}
