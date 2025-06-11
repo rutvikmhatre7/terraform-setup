@@ -21,3 +21,33 @@ variable "vmname" {
   default     = "terraform-poc-vm"
   description = "vm name"
 }
+
+variable "key_permissions" {
+  type        = list(string)
+  description = "List of key permissions."
+  default     = ["List", "Create", "Delete", "Get", "Purge", "Recover", "Update", "GetRotationPolicy", "SetRotationPolicy"]
+}
+
+variable "secret_permissions" {
+  type        = list(string)
+  description = "List of secret permissions."
+  default     = ["Set"]
+}
+
+variable "vm_deployment" {
+  type        = bool
+  description = "VM deployment"
+  default     = true
+}
+
+variable "vaultname" {
+  type        = string
+  default     = "vault_terraform"
+  description = "vault name"
+}
+
+variable "vault_sku" {
+  type        = string
+  default     = "standard"
+  description = "vault name"
+}

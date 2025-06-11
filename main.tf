@@ -120,6 +120,12 @@ resource "azurerm_storage_account" "my_storage_account" {
   account_replication_type = "LRS"
 }
 
+# Create (and display) an SSH keys
+resource "tls_private_key" "terraform_ssh" {
+  algorithm           = "RSA"
+  rsa_bits            = 4096
+}
+
 # Create virtual machine
 resource "azurerm_linux_virtual_machine" "my_terraform_vm" {
   name                  = var.vmname
@@ -148,7 +154,7 @@ resource "azurerm_linux_virtual_machine" "my_terraform_vm" {
 
   admin_ssh_key {
     username   = var.username
-    public_key = azapi_resource_action.ssh_public_key_gen.output.publicKey
+    public_key = tls_private_key.terraform_ssh.public_key_openssh
   }
 
   boot_diagnostics {
@@ -156,3 +162,39 @@ resource "azurerm_linux_virtual_machine" "my_terraform_vm" {
   }
 }
 
+resource "azurerm_key_vault" "vault" {
+  name                       = var.vaultname
+  location                   = azurerm_resource_group.rg.location
+  resource_group_name        = azurerm_resource_group.rg.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = var.vault_sku
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = local.current_user_id
+
+    key_permissions    = var.key_permissions
+    secret_permissions = var.secret_permissions
+  }
+}
+
+resource "azurerm_key_vault_secret" "ssh_public_key" {
+  name         = "terraform-ssh-public-key"
+  value        = tls_private_key.terraform_ssh.public_key_pem
+  key_vault_id = azurerm_key_vault.vault.id
+
+  depends_on = [
+    tls_private_key.terraform_ssh
+  ]
+}
+
+resource "azurerm_key_vault_secret" "ssh_private_key" {
+  name         = "terraform-ssh-private-key"
+  value        = tls_private_key.terraform_ssh.private_key_pem
+  key_vault_id = azurerm_key_vault.vault.id
+
+  depends_on = [
+    tls_private_key.terraform_ssh
+  ]
+}
